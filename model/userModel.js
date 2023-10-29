@@ -3,22 +3,24 @@ const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs")
 
 const userSchema = new mongoose.Schema({
-    displayName: String,
+    displayName: {
+        type: String,
+        required: "Please provide name"
+    },
     username: {
         type: String,
-        required: [true, "Please tell us your name"]
+        required: 'Please provide username'
     },
     password: {
         type: String,
-        required: [true, "Please provide password"],
+        required: 'Please provide password',
         select: false
     },
-    isAdmin: {
+    isStaff: {
         type: Boolean,
-        default: false,
-        select: false
+        default: false
     },
-    orders: [String],
+    // orders: [String],
     admin_id: String
 })
 

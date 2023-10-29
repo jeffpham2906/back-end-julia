@@ -5,7 +5,7 @@ const Product = require("../model/productModel")
 
 exports.getAllProduct = async (req, res) => {
     try {
-        const products = await Product.find()
+        const products = await Product.find({ admin_id: req.adminId })
         res.status(200).json({
             status: "success",
             result: products.length,
@@ -21,8 +21,13 @@ exports.getAllProduct = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        console.log(req.body)
-        const newProduct = await Product.create(req.body)
+        const newProduct = await Product.create({
+            name: req.body.name,
+            image: req.body.image,
+            price: req.body.price,
+            revenue: req.body.revenue,
+            admin_id: req.adminId
+        })
         res.status(201).json({
             status: "success",
             product: newProduct

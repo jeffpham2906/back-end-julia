@@ -22,6 +22,10 @@ const productSchema = new mongoose.Schema({
     create_At: {
         type: Date,
         default: Date.now()
+    },
+    admin_id: {
+        type: String,
+        required: true
     }
 })
 

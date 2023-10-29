@@ -6,13 +6,18 @@ const orderModel = new mongoose.Schema({
         required: [true, "Order must have a order ID"],
         unique: true
     },
-    status: {
+    staff_name: {
         type: String,
-        default: "Chưa chia"
+        default: ""
     },
+    status: String,
     checked: {
         type: Boolean,
         default: false
+    },
+    admin_id: {
+        type: String,
+        required: true
     },
     staff_id: String,
     order_products: [

@@ -1,9 +1,29 @@
 const Order = require('../model/orderModel')
+const User = require('../model/userModel')
 
-
-exports.getAllOrders = async (req, res) => {
+exports.getOrders = async (req, res) => {
     try {
-        const orders = await Order.find()
+        const isStaff = req.query.role === 'staff'
+        // console.log(isStaff)
+        // console.log(req.staffId)
+        console.log(req.query)
+
+
+        let findOptions = isStaff ? { staff_id: req.staffId } : { admin_id: req.adminId }
+        if (req.query.status === 'no-distributed') {
+            findOptions = { ...findOptions, staff_name: '' }
+        }
+        if (req.query.status === 'distributed') {
+            findOptions = { ...findOptions, status: 'is completing' }
+        }
+        if (req.query.status === 'completed') {
+            findOptions = { ...findOptions, isCompleted: true }
+        }
+        if (req.query.status === 'pending') {
+            findOptions = { ...findOptions, status: 'is pending' }
+        }
+
+        const orders = await Order.find(findOptions)
         res.status(200).json({
             status: 'success',
             orders
@@ -21,7 +41,8 @@ exports.createOrder = async (req, res) => {
     try {
         const newOrder = await Order.create({
             orderID: req.body.orderID,
-            order_products: [...req.body.order_products]
+            order_products: [...req.body.order_products],
+            admin_id: req.adminId
         })
 
         res.status(201).json({
@@ -51,15 +72,40 @@ exports.updateOrder = async (req, res) => {
     }
 }
 
-
-exports.addNewOrder = async (req, res) => {
+exports.addOrder = async (req, res) => {
     try {
-        const data = req.body
-        res.json(data)
+
+        const orders = req.body.orders
+
+        if (!orders) return res.status(406).json({ status: 'failed', message: 'Do not have order to distributed' })
+
+        const user = await User.findById(req.params.id)
+
+        await orders.map(async (order) => await Order.findByIdAndUpdate(order, { staff_name: user.displayName, staff_id: user._id, status: 'is completing' }))
+        res.status(201).json({
+            status: 'success'
+        })
     } catch (error) {
-        res.status(406).json({
+        console.log(error.message)
+        res.status(401).json({
             status: 'failed',
-            message: "F"
+            message: error.message
+        })
+    }
+}
+
+exports.checkRequest = async (req, res) => {
+    try {
+        const orders = req.body.orders
+        await orders.map(async (order) => await Order.findByIdAndUpdate(order, { status: 'is pending' }))
+        res.status(201).json({
+            status: 'success'
+        })
+    } catch (error) {
+        console.log(error.message)
+        res.status(401).json({
+            status: 'failed',
+            message: error.message
         })
     }
 }
