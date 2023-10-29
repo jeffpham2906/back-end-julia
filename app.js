@@ -12,6 +12,7 @@ const productRoute = require('./routes/productRoute')
 const orderRoute = require('./routes/orderRoute')
 const userRoute = require('./routes/userRoute')
 // const staffRoute = require('./routes/staffRoute')
+app.get('/', (req, res) => res.send('hello'))
 
 app.use('/api/products', productRoute)
 app.use('/api/orders', orderRoute)
