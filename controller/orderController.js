@@ -1,132 +1,79 @@
 const Order = require('../model/orderModel')
 const User = require('../model/userModel')
-
-exports.getOrders = async (req, res) => {
-    try {
-        const isStaff = req.query.role === 'staff'
-        // console.log(isStaff)
-        // console.log(req.staffId)
-        console.log(req.query)
+const APIFeatures = require('../utils/apiFeatures')
+const catchAsync = require('../utils/catchAsync')
 
 
-        let findOptions = isStaff ? { staff_id: req.staffId } : { admin_id: req.adminId }
-        if (req.query.status === 'no-distributed') {
-            findOptions = { ...findOptions, staff_name: '' }
-        }
-        if (req.query.status === 'distributed') {
-            findOptions = { ...findOptions, status: 'is completing' }
-        }
-        if (req.query.status === 'completed') {
-            findOptions = { ...findOptions, isCompleted: true }
-        }
-        if (req.query.status === 'pending') {
-            findOptions = { ...findOptions, status: 'is pending' }
-        }
+exports.getOrders = catchAsync(async (req, res) => {
+    const feature = new APIFeatures(Order.find(), req.query).filter().limitFields().paginate().sort()
+    const orders = await feature.query
+    res.status(200).json({
+        status: 'success',
+        result: orders.length,
+        orders
+    })
+})
 
-        const orders = await Order.find(findOptions)
-        res.status(200).json({
-            status: 'success',
-            orders
-        })
-    } catch (error) {
-        res.status(404).json({
-            status: 'failed',
-            message: "Cannot retrive orders"
-        })
-    }
-}
+exports.createOrder = catchAsync(async (req, res) => {
+    console.log(req.body)
+    console.log(req.admin_id)
+    const { orderID, order_products } = req.body
+    const newOrder = await Order.create({
+        orderID,
+        order_products,
+        admin_id: req.query.admin_id
+    })
 
-exports.createOrder = async (req, res) => {
+    res.status(201).json({
+        status: "success",
+        newOrder
+    })
+})
 
-    try {
-        const newOrder = await Order.create({
-            orderID: req.body.orderID,
-            order_products: [...req.body.order_products],
-            admin_id: req.adminId
-        })
+exports.updateOrder = catchAsync(async (req, res) => {
+    const orderUpdated = await Order.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, returnDocument: 'after' })
+    res.status(202).json({
+        status: 'success',
+        orderUpdated
+    })
+})
 
-        res.status(201).json({
-            status: "success",
-            newOrder
-        })
-    } catch (error) {
-        res.status(406).json({
-            status: 'failed',
-            message: "Failed to create order"
-        })
-    }
-}
+exports.addOrder = catchAsync(async (req, res) => {
+    const orders = req.body.orders
 
-exports.updateOrder = async (req, res) => {
-    try {
-        const orderUpdated = await Order.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, returnDocument: 'after' })
-        res.status(202).json({
-            status: 'success',
-            orderUpdated
-        })
-    } catch (error) {
-        res.status(406).json({
-            status: 'failed',
-            message: "Failed to update order"
-        })
-    }
-}
+    if (!orders) return res.status(406).json({ status: 'failed', message: 'Do not have order to distributed' })
 
-exports.addOrder = async (req, res) => {
-    try {
+    const user = await User.findById(req.params.id)
+    await orders.map(async (order) => await Order.findByIdAndUpdate(order, { staff_name: user.displayName, staff_id: user._id, status: 'distributed' }))
 
-        const orders = req.body.orders
+    res.status(201).json({
+        status: 'success'
+    })
+})
 
-        if (!orders) return res.status(406).json({ status: 'failed', message: 'Do not have order to distributed' })
+exports.checkRequest = catchAsync(async (req, res) => {
+    const orders = req.body.orders
+    await orders.map(async (order) => await Order.findByIdAndUpdate(order, { status: 'pending' }))
 
-        const user = await User.findById(req.params.id)
+    res.status(201).json({
+        status: 'success'
+    })
+})
 
-        await orders.map(async (order) => await Order.findByIdAndUpdate(order, { staff_name: user.displayName, staff_id: user._id, status: 'is completing' }))
-        res.status(201).json({
-            status: 'success'
-        })
-    } catch (error) {
-        console.log(error.message)
-        res.status(401).json({
-            status: 'failed',
-            message: error.message
-        })
-    }
-}
+exports.confirmOrder = catchAsync(async (req,res)=>{
+    
+})
 
-exports.checkRequest = async (req, res) => {
-    try {
-        const orders = req.body.orders
-        await orders.map(async (order) => await Order.findByIdAndUpdate(order, { status: 'is pending' }))
-        res.status(201).json({
-            status: 'success'
-        })
-    } catch (error) {
-        console.log(error.message)
-        res.status(401).json({
-            status: 'failed',
-            message: error.message
-        })
-    }
-}
+exports.deleteOrder = catchAsync(async (req, res) => {
+    const id = req.params.id
+    if (!id) return res.status(404).json({
+        status: 'failed',
+        message: "Cannot found id order"
+    })
 
-exports.deleteOrder = async (req, res) => {
-    try {
-        const id = req.params.id
-        if (!id) return res.status(404).json({
-            status: 'failed',
-            message: "Cannot found id order"
-        })
-
-        const order = await Order.findByIdAndDelete(id)
-        res.status(201).json({
-            status: 'success',
-            order
-        })
-    } catch (error) {
-        res.status(406).json({
-            status: 'failed',
-            message: "Cannot delete order"
-        })
-    }
-}
+    const order = await Order.findByIdAndDelete(id)
+    res.status(201).json({
+        status: 'success',
+        order
+    })
+})

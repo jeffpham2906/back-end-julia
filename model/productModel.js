@@ -1,25 +1,24 @@
 const mongoose = require('mongoose')
-
+const fs = require('fs')
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Product must have a name"],
+        required: "Product must have a name",
         unique: true
     },
     image: {
         type: String,
-        required: [true, "Product must have a image"],
-        unique: true
+        required: "Product must have a image",
     },
     price: {
         type: Number,
-        required: [true, "Product must have a price"],
+        required: "Product must have a price"
     },
-    revenue: {
+    commission: {
         type: Number,
-        required: [true, "Product must have a revenue"]
+        required: "Product must have a commission"
     },
-    create_At: {
+    createAt: {
         type: Date,
         default: Date.now()
     },
@@ -28,6 +27,7 @@ const productSchema = new mongoose.Schema({
         required: true
     }
 })
+
 
 const Product = mongoose.model('Product', productSchema)
 module.exports = Product

@@ -10,7 +10,10 @@ const orderModel = new mongoose.Schema({
         type: String,
         default: ""
     },
-    status: String,
+    status: {
+        type: String,
+        default: "no-distributed"
+    },
     checked: {
         type: Boolean,
         default: false
@@ -56,12 +59,17 @@ const orderModel = new mongoose.Schema({
                 maxlength: [100, "Note should be less than 100 character"]
             }
             ,
-            create_At: {
+            createAt: {
                 type: Date,
                 default: Date.now()
             }
-        }
-    ]
+        },
+
+    ],
+    createAt: {
+        type: Date,
+        default: Date.now()
+    }
 })
 
 const Order = mongoose.model("Order", orderModel)

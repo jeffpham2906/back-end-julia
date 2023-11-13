@@ -5,17 +5,18 @@ const authController = require('../controller/authController')
 const router = express.Router()
 
 router.use(authController.protect)
-// router.use(authController.restrictAdmin)
+
+
 router
     .route('/')
     .get(orderController.getOrders)
     .post(orderController.createOrder)
+    .put(orderController.checkRequest)
 
 
 router
     .route('/:id')
     .post(orderController.addOrder)
-    .put(orderController.checkRequest)
     .patch(orderController.updateOrder)
     .delete(orderController.deleteOrder)
 

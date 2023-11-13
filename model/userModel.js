@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    // orders: [String],
     admin_id: String
 })
 
