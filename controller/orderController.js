@@ -60,8 +60,13 @@ exports.checkRequest = catchAsync(async (req, res) => {
     })
 })
 
-exports.confirmOrder = catchAsync(async (req,res)=>{
-    
+exports.confirmOrder = catchAsync(async (req, res) => {
+    const orders = req.body.orders
+    await orders.map(async (order) => await Order.findByIdAndUpdate(order, { status: 'completed' }))
+
+    res.status(201).json({
+        status: 'success'
+    })
 })
 
 exports.deleteOrder = catchAsync(async (req, res) => {

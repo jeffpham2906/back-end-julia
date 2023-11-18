@@ -11,7 +11,8 @@ router
     .route('/')
     .get(orderController.getOrders)
     .post(orderController.createOrder)
-    .put(orderController.checkRequest)
+    .put(orderController.confirmOrder)
+    .patch(orderController.checkRequest)
 
 
 router
